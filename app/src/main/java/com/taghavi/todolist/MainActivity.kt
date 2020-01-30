@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
         AuthUI.IdpConfig.EmailBuilder().build()
     )
 
-    private lateinit var todoAdapter: ArrayAdapter<String>
+    private lateinit var todoAdapter: TodoAdapter
 
     private val todoItems: ArrayList<String> = ArrayList()
 
@@ -104,7 +104,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initList() {
-        todoAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, todoItems)
+        todoAdapter = TodoAdapter(this, R.layout.item_todo, todoItems)
         listTodo.adapter = todoAdapter
     }
 
