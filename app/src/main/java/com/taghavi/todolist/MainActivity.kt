@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -49,6 +50,18 @@ class MainActivity : AppCompatActivity() {
         addItemButton.setOnClickListener {
             insertItem(addItemEditText.text.toString())
             addItemEditText.text.clear()
+        }
+
+        fab.setOnClickListener {
+            layoutAddItem.expand()
+            fab.visibility = View.GONE
+            touchInterceptor.visibility = View.VISIBLE
+        }
+
+        touchInterceptor.setOnClickListener {
+            layoutAddItem.collapse()
+            fab.visibility = View.VISIBLE
+            touchInterceptor.visibility = View.GONE
         }
 
         initList()
