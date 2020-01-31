@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -90,7 +92,6 @@ class MainActivity : AppCompatActivity() {
         userId = FirebaseAuth.getInstance().uid
         Log.i(LOG_TAG, "userId: $userId")
 
-        addListListener()
 
         if (userId == null) {
             startActivityForResult(
@@ -100,7 +101,9 @@ class MainActivity : AppCompatActivity() {
                     .build()
                 , RC_SIGN_IN
             )
+            return
         }
+        addListListener()
     }
 
     private fun initList() {
@@ -114,6 +117,21 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == RC_SIGN_IN && resultCode == Activity.RESULT_OK) {
             userId = FirebaseAuth.getInstance().uid
             Log.i(LOG_TAG, "New userId : $userId")
+            initFirebase()
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.ic_logout) {
+            FirebaseAuth.getInstance().signOut()
+            initFirebase()
+            return true
+        }
+        return false
     }
 }
