@@ -5,12 +5,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.github.aakira.expandablelayout.ExpandableLinearLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -25,11 +27,19 @@ public class TodoAdapter extends ArrayAdapter<String> {
     private int resource;
     private List<String> objects;
 
+    onImageClickedListener imageClickedListener;
+
     public TodoAdapter(@Nonnull Context context, int resource, @Nonnull List<String> objects) {
         super(context, resource, objects);
         this.context = context;
         this.resource = resource;
         this.objects = objects;
+
+        imageClickedListener = (onImageClickedListener) context;
+    }
+
+    public interface onImageClickedListener {
+        void OnImageClicked(int position);
     }
 
     @NonNull
@@ -38,9 +48,29 @@ public class TodoAdapter extends ArrayAdapter<String> {
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(resource, parent, false);
         }
-        ((TextView) convertView.findViewById(R.id.itemTextView)).setText(this.objects.get(position));
+        ((TextView) convertView.findViewById(R.id.tv_item)).setText(this.objects.get(position));
 
-        convertView.findViewById(R.id.itemDeleteButton).setOnClickListener(new View.OnClickListener() {
+        View rootLayout = convertView.findViewById(R.id.root_layout);
+        final ExpandableLinearLayout expandView = convertView.findViewById(R.id.expand_view);
+        ImageView btnImage = convertView.findViewById(R.id.btn_image);
+        ImageView imgExpanded = convertView.findViewById(R.id.img_expanded);
+
+        rootLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                expandView.toggle();
+            }
+        });
+
+        btnImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                imageClickedListener.OnImageClicked(position);
+            }
+        });
+
+
+        convertView.findViewById(R.id.btn_delete).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 objects.remove(position);
@@ -49,11 +79,11 @@ public class TodoAdapter extends ArrayAdapter<String> {
                 FirebaseFirestore db = FirebaseFirestore.getInstance();
                 String userId = FirebaseAuth.getInstance().getUid();
 
-                if (userId!=null) {
+                if (userId != null) {
                     Map<String, Object> userMap = new HashMap<>();
                     userMap.put("todoList", objects);
                     db.collection("users").document(userId).set(userMap);
-                }else {
+                } else {
                     Toast.makeText(context, "There is something wrong", Toast.LENGTH_SHORT).show();
                 }
             }

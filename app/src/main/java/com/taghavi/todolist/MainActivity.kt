@@ -2,12 +2,12 @@ package com.taghavi.todolist
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.firebase.ui.auth.AuthUI
@@ -16,17 +16,22 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.*
 
-class MainActivity : AppCompatActivity() {
+
+class MainActivity : AppCompatActivity(), TodoAdapter.onImageClickedListener {
 
     private val LOG_TAG = MainActivity::class.java.simpleName
 
     companion object {
         private const val RC_SIGN_IN = 123
+        private const val RC_PICK_IMAGE = 321
     }
 
     private lateinit var db: FirebaseFirestore
+    private lateinit var storage: FirebaseStorage
 
     private var userId: String? = null
 
@@ -37,6 +42,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var todoAdapter: TodoAdapter
 
     private val todoItems: ArrayList<String> = ArrayList()
+
+    var requestingPorsition: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,6 +109,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun initFirebase() {
         db = FirebaseFirestore.getInstance()
+        storage = FirebaseStorage.getInstance()
         userId = FirebaseAuth.getInstance().uid
         Log.i(LOG_TAG, "userId: $userId")
 
@@ -124,6 +132,40 @@ class MainActivity : AppCompatActivity() {
         listTodo.adapter = todoAdapter
     }
 
+    private fun saveFile(input: InputStream, itemName: String): Uri? {
+        val file = File(cacheDir, itemName)
+        var returnUri: Uri? = null
+        try {
+            val output: OutputStream = FileOutputStream(file)
+            try {
+                val buffer = ByteArray(4 * 1024) // or other buffer size
+                var read: Int
+                while (input.read(buffer).also { read = it } != -1) {
+                    output.write(buffer, 0, read)
+                }
+                output.flush()
+            } catch (e: IOException) {
+                e.printStackTrace()
+            } finally {
+                try {
+                    output.close()
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+            }
+        } catch (e: FileNotFoundException) {
+            e.printStackTrace()
+        } finally {
+            try {
+                input.close()
+                returnUri = Uri.fromFile(file)
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }
+        return returnUri
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -131,6 +173,29 @@ class MainActivity : AppCompatActivity() {
             userId = FirebaseAuth.getInstance().uid
             Log.i(LOG_TAG, "New userId : $userId")
             initFirebase()
+        }
+
+        if (requestCode == RC_PICK_IMAGE && resultCode == Activity.RESULT_OK) {
+            val itemName = todoItems[requestingPorsition]
+
+            try {
+                val inputStream = contentResolver.openInputStream(data!!.data!!)
+                val fileUri = saveFile(inputStream!!, itemName)
+
+                val imageReference =
+                    storage.reference.child(userId!!).child("image").child(itemName)
+
+                imageReference.putFile(fileUri!!).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Log.i(LOG_TAG, "Upload success: ${task.result}")
+                    } else {
+                        Log.i(LOG_TAG, "Upload failed: ${task.exception}")
+                    }
+                }
+            } catch (e: FileNotFoundException) {
+                e.printStackTrace()
+            }
+
         }
     }
 
@@ -146,5 +211,14 @@ class MainActivity : AppCompatActivity() {
             return true
         }
         return false
+    }
+
+    override fun OnImageClicked(position: Int) {
+        requestingPorsition = position
+
+        val intent = Intent()
+        intent.type = "image/*"
+        intent.action = Intent.ACTION_GET_CONTENT
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), RC_PICK_IMAGE)
     }
 }

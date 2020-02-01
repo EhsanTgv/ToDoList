@@ -7,4 +7,6 @@
     <color name="fontColorMain">#424242</color>
     <color name="fontColorLight">#EEEEEE</color>
     <color name="dividerColor">#E0E0E0</color>
+
+    <color name="gray_500">#9E9E9E</color>
 </resources>
