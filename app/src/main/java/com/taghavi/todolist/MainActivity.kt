@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.onImageClickedListener {
 
     private val todoItems: ArrayList<String> = ArrayList()
 
-    var requestingPorsition: Int = -1
+    var requestingPosition: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -176,7 +176,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.onImageClickedListener {
         }
 
         if (requestCode == RC_PICK_IMAGE && resultCode == Activity.RESULT_OK) {
-            val itemName = todoItems[requestingPorsition]
+            val itemName = todoItems[requestingPosition]
 
             try {
                 val inputStream = contentResolver.openInputStream(data!!.data!!)
@@ -214,7 +214,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.onImageClickedListener {
     }
 
     override fun OnImageClicked(position: Int) {
-        requestingPorsition = position
+        requestingPosition = position
 
         val intent = Intent()
         intent.type = "image/*"
