@@ -11,6 +11,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.firebase.ui.auth.AuthUI
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.EventListener
@@ -32,6 +33,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.onImageClickedListener {
 
     private lateinit var db: FirebaseFirestore
     private lateinit var storage: FirebaseStorage
+    private lateinit var analytics: FirebaseAnalytics
 
     private var userId: String? = null
 
@@ -82,6 +84,8 @@ class MainActivity : AppCompatActivity(), TodoAdapter.onImageClickedListener {
             val userMap: HashMap<String, Any> = HashMap()
             userMap["todoList"] = todoItems
             db.collection("users").document(userId!!).set(userMap)
+
+            logAddItemEvent(newItem)
         } catch (exception: Exception) {
             Toast.makeText(this, "Error: insertItem -> $exception", Toast.LENGTH_SHORT).show()
         }
@@ -111,6 +115,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.onImageClickedListener {
         db = FirebaseFirestore.getInstance()
         storage = FirebaseStorage.getInstance()
         userId = FirebaseAuth.getInstance().uid
+        analytics = FirebaseAnalytics.getInstance(this)
         Log.i(LOG_TAG, "userId: $userId")
 
 
@@ -164,6 +169,12 @@ class MainActivity : AppCompatActivity(), TodoAdapter.onImageClickedListener {
             }
         }
         return returnUri
+    }
+
+    private fun logAddItemEvent(itemName: String) {
+        val logBundle = Bundle()
+        logBundle.putString(FirebaseAnalytics.Param.ITEM_NAME, itemName)
+        analytics.logEvent("AddItem", logBundle)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
