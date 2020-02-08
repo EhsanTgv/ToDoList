@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import com.github.aakira.expandablelayout.ExpandableLinearLayout;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FileDownloadTask;
@@ -122,8 +123,14 @@ public class TodoAdapter extends ArrayAdapter<String> {
                 Map<String, Object> userMap = new HashMap<>();
                 userMap.put("todoList", objects);
                 db.collection("users").document(uid).set(userMap);
+
+                setDeletedItemProperty();
             }
         });
     }
 
+    private void setDeletedItemProperty() {
+        FirebaseAnalytics analytics = FirebaseAnalytics.getInstance(getContext());
+        analytics.setUserProperty("item_deleted", "true");
+    }
 }
