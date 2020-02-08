@@ -17,6 +17,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.*
@@ -116,6 +117,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.onImageClickedListener {
         storage = FirebaseStorage.getInstance()
         userId = FirebaseAuth.getInstance().uid
         analytics = FirebaseAnalytics.getInstance(this)
+        FirebaseMessaging.getInstance().isAutoInitEnabled = true
         Log.i(LOG_TAG, "userId: $userId")
 
 
