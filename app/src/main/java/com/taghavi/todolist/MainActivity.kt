@@ -18,6 +18,8 @@ import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.*
@@ -35,6 +37,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.onImageClickedListener {
     private lateinit var db: FirebaseFirestore
     private lateinit var storage: FirebaseStorage
     private lateinit var analytics: FirebaseAnalytics
+    private lateinit var remoteConfig: FirebaseRemoteConfig
 
     private var userId: String? = null
 
@@ -117,6 +120,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.onImageClickedListener {
         storage = FirebaseStorage.getInstance()
         userId = FirebaseAuth.getInstance().uid
         analytics = FirebaseAnalytics.getInstance(this)
+        remoteConfig = FirebaseRemoteConfig.getInstance()
         FirebaseMessaging.getInstance().isAutoInitEnabled = true
         Log.i(LOG_TAG, "userId: $userId")
 
@@ -177,6 +181,15 @@ class MainActivity : AppCompatActivity(), TodoAdapter.onImageClickedListener {
         val logBundle = Bundle()
         logBundle.putString(FirebaseAnalytics.Param.ITEM_NAME, itemName)
         analytics.logEvent("AddItem", logBundle)
+    }
+
+    private fun fetchParameters() {
+        val cacheExpiration: Long = 3600
+        remoteConfig = FirebaseRemoteConfig.getInstance()
+        val configSettings = FirebaseRemoteConfigSettings.Builder()
+            .setMinimumFetchIntervalInSeconds(3600)
+            .build()
+        remoteConfig.setConfigSettingsAsync(configSettings).addOnSuccessListener { }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
