@@ -136,6 +136,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.onImageClickedListener {
             return
         }
         addListListener()
+        fetchParameters()
     }
 
     private fun initList() {
@@ -184,12 +185,38 @@ class MainActivity : AppCompatActivity(), TodoAdapter.onImageClickedListener {
     }
 
     private fun fetchParameters() {
-        val cacheExpiration: Long = 3600
-        remoteConfig = FirebaseRemoteConfig.getInstance()
         val configSettings = FirebaseRemoteConfigSettings.Builder()
             .setMinimumFetchIntervalInSeconds(3600)
             .build()
-        remoteConfig.setConfigSettingsAsync(configSettings).addOnSuccessListener { }
+        remoteConfig.setConfigSettingsAsync(configSettings)
+
+        remoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
+        // [END set_default_values]
+
+        fetchWelcome()
+    }
+
+    private fun fetchWelcome() {
+
+        // [START fetch_config_with_callback]
+        remoteConfig.fetchAndActivate()
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    val updated = task.result
+                    Log.d(LOG_TAG, "Config params updated: $updated")
+                    Log.d(LOG_TAG, "isSuccessful: ${remoteConfig.getString("welcome_message")}")
+                    Toast.makeText(
+                        this, "Fetch and activate succeeded",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        this, "Fetch failed",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        // [END fetch_config_with_callback]
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
